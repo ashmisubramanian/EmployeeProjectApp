@@ -143,11 +143,11 @@ public class ProjectController {
         }
     }
 
-    /*@DeleteMapping("/deleteEmployee/{id}")
+    @DeleteMapping("/deleteEmployee/{id}")
     public void delete(@PathVariable Long id){
         employeeRepository.deleteById(id);
 
-    }*/
+    }git 
 
     @GetMapping("/getAllEmployeesUsingJPAQL")
     public List<Employee> getAllEmployeesUsingJPAQL(){
