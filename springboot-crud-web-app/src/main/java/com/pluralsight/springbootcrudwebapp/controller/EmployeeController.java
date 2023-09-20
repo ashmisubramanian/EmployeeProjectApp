@@ -152,27 +152,15 @@ public class EmployeeController {
         return firstNameLastName;
     }
 
-    //Get mapping using RestTemplate
+    //Get mapping using Web Client
     @GetMapping("/getManager/{managerId}")
-    public ResponseEntity<ManagerRequest> getManager(@PathVariable Long managerId) {
-        ResponseEntity<List<ManagerRequest>> managerResponse = restTemplate.exchange(
-                "http://localhost:8081/api/v1/managers/findManager/" + managerId,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<ManagerRequest>>() {}
-        );
-
-
-        List<ManagerRequest> managers = managerResponse.getBody();
-
-        if (managers != null && !managers.isEmpty()) {
-            ManagerRequest manager = managers.get(0);
-            return ResponseEntity.ok(manager);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-
-
+    public Flux<ManagerRequest> getmanager(@PathVariable Long managerId){
+        /*Flux<ManagerRequest> managerResponse=webClient.get()
+                .uri("http://localhost:8081/api/v1/managers/findManager/" + managerId)
+                .retrieve().bodyToFlux(ManagerRequest.class);*/
+        return webClient.get()
+                .uri("http://localhost:8081/api/v1/managers/findManager/" + managerId)
+                .retrieve().bodyToFlux(ManagerRequest.class);
     }
 
 }

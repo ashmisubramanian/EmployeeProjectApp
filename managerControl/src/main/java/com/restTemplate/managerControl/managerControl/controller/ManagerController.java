@@ -49,24 +49,11 @@ public class ManagerController {
         return manager;
     }
 
+
     @GetMapping("/showAllProjectsManagedBy/{managerId}")
-    public ResponseEntity<List<ProjectRequest>> getProjects(@PathVariable Long managerId) {
-
-        ResponseEntity<List<ProjectRequest>> projectResponse = restTemplate.exchange(
-                "http://localhost:8080/api/v1/projects/getProjectsByManagerId/" + managerId,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<ProjectRequest>>() {
-                }
-        );
-
-        List<ProjectRequest> projects = projectResponse.getBody();
-
-        if (projects != null && !projects.isEmpty()) {
-            List<ProjectRequest> managers = new ArrayList<>(projects);
-                return ResponseEntity.ok(managers);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public Flux<ProjectRequest> getmanager(@PathVariable Long managerId){
+        return webClient.get()
+                .uri("http://localhost:8080/api/v1/projects/getProjectsByManagerId/" + managerId)
+                .retrieve().bodyToFlux(ProjectRequest.class);
     }
 }
