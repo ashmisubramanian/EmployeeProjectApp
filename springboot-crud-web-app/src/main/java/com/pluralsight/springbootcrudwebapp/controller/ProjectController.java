@@ -1,8 +1,6 @@
 package com.pluralsight.springbootcrudwebapp.controller;
 
 
-import com.pluralsight.springbootcrudwebapp.models.Employee;
-import com.pluralsight.springbootcrudwebapp.models.EmployeeProjectReport;
 import com.pluralsight.springbootcrudwebapp.models.Project;
 import com.pluralsight.springbootcrudwebapp.repositories.EmployeeRepository;
 import com.pluralsight.springbootcrudwebapp.repositories.ProjectRepository;
@@ -13,10 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @RestController
@@ -51,8 +47,14 @@ public class ProjectController {
         this.employeeRepository = employeeRepository;
     }
 
-    @GetMapping("/showProjects")
+    @GetMapping
     public List<Project> listall(){return projectRepository.findAll();}
+
+    @GetMapping(params = "id")
+    public @ResponseBody Optional<Project> findManagerById(@RequestParam(name = "id") Long id){
+        Optional<Project> manager= projectRepository.findById(id);
+        return manager;
+    }
 
 
     /*@PostMapping("/create")
@@ -75,7 +77,7 @@ public class ProjectController {
 
 
 
-    @PutMapping("/updateProject/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Project updateProject){
         Optional<Project> projectPresent= projectRepository.findById(id);
 
@@ -93,7 +95,7 @@ public class ProjectController {
 
 
 
-    @DeleteMapping("/deleteProject/{id}")
+    @DeleteMapping("/{id}")
     public String deleteProject(@PathVariable Long id){
         Optional<Project> projects=projectRepository.findById(id);
         if(projects.isPresent()){
@@ -105,9 +107,9 @@ public class ProjectController {
         }
     }
 
-    @GetMapping("/getProjectsByManagerId/{id}")
-    public @ResponseBody List<Project> findManagerById(@PathVariable Long id){
-        List<Project> manager= projectRepository.findByManagerId(id);
+    @GetMapping(params = "managerId")
+    public @ResponseBody List<Project> findManagerByManagerId(@RequestParam(name = "managerId") Long managerId){
+        List<Project> manager= projectRepository.findByManagerId(managerId);
         return manager;
     }
 

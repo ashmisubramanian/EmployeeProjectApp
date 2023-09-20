@@ -10,12 +10,15 @@ import com.pluralsight.springbootcrudwebapp.repositories.PromotionRepository;
 import com.pluralsight.springbootcrudwebapp.services.EmployeeService;
 import com.pluralsight.springbootcrudwebapp.services.ManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
@@ -47,7 +50,13 @@ public class EmployeeController {
     @Autowired
     private WebClient webClient;
 
-    @GetMapping("/showEmployees")
+    @Value("${api.url1}")
+    private String baseUrl1;
+
+    @Value("${api.url2}")
+    private String baseUrl2;
+
+    @GetMapping
     public @ResponseBody
     List<Employee>
     getEmployees() {
@@ -55,13 +64,13 @@ public class EmployeeController {
         return employees;
     }
 
-    @GetMapping("/findEmployee/{id}")
-    public @ResponseBody Optional<Employee> findEmployeeById(@PathVariable Long id){
+    @GetMapping(params = "id")
+    public @ResponseBody Optional<Employee> findEmployeeById(@RequestParam(name = "id") Long id){
         Optional<Employee> employee= employeeRepository.findById(id);
         return employee;
     }
 
-    @PostMapping("/saveEmployee")
+    @PostMapping
     public ResponseEntity<String> saveEmployeeWithProject(@RequestBody Employee employee){
         Long empId=employee.getId();
         int trueCount=0;
@@ -84,9 +93,15 @@ public class EmployeeController {
                 employeeRepository.save(employee);
                 for (Project project: employee.getProjects()){
                     Long managerId=project.getManagerId();
-                    String title=project.getTitle();
                     Employee emp=employeeRepository.getReferenceById(managerId);
-                    ResponseEntity<ManagerRequest> managerResponse = managerService.createManager(managerId,emp.getFirstName(),emp.getLastName());
+                    ManagerRequest managerRequest=new ManagerRequest(managerId,emp.getFirstName(),emp.getLastName());
+                    ManagerRequest managerResponse = webClient.post()
+                            .uri(baseUrl2 + "/v1/managers")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(BodyInserters.fromValue(managerRequest))
+                            .retrieve()
+                            .bodyToMono(ManagerRequest.class)
+                            .block();
                 }
             }
         }
@@ -97,7 +112,7 @@ public class EmployeeController {
         //return ResponseEntity.ok("Projects created with title: " + employee.getProjects());
     }
 
-    @PutMapping("/updateEmployee/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Employee updateEmployee){
         Optional<Employee> employeePresent= employeeRepository.findById(id);
 
@@ -115,7 +130,7 @@ public class EmployeeController {
         }
     }
 
-    @DeleteMapping("/deleteEmployee/{id}")
+    @DeleteMapping("/{id}")
     public String deleteEmployee(@PathVariable Long id){
         List<Project> projectsWithManagerId= projectRepository.findByManagerId(id);
         if(!projectsWithManagerId.isEmpty()){
@@ -153,13 +168,10 @@ public class EmployeeController {
     }
 
     //Get mapping using Web Client
-    @GetMapping("/getManager/{managerId}")
-    public Flux<ManagerRequest> getmanager(@PathVariable Long managerId){
-        /*Flux<ManagerRequest> managerResponse=webClient.get()
-                .uri("http://localhost:8081/api/v1/managers/findManager/" + managerId)
-                .retrieve().bodyToFlux(ManagerRequest.class);*/
+    @GetMapping(params = "managerId")
+    public Flux<ManagerRequest> getmanager(@RequestParam(name = "managerId") Long managerId){
         return webClient.get()
-                .uri("http://localhost:8081/api/v1/managers/findManager/" + managerId)
+                .uri(baseUrl2+"/v1/managers?managerId=" + managerId)
                 .retrieve().bodyToFlux(ManagerRequest.class);
     }
 

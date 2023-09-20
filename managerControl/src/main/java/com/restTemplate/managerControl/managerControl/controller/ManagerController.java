@@ -4,17 +4,13 @@ import com.restTemplate.managerControl.managerControl.models.Manager;
 import com.restTemplate.managerControl.managerControl.models.ProjectRequest;
 import com.restTemplate.managerControl.managerControl.repository.ManagerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/managers")
@@ -22,24 +18,35 @@ public class ManagerController {
     @Autowired
     private ManagerRepository managerRepository;
 
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Autowired
     private WebClient webClient;
 
-    @GetMapping("/showManagers")
+    @Value("${api.url1}")
+    private String baseUrl1;
+
+    @Value("${api.url2}")
+    private String baseUrl2;
+
+    @GetMapping
     public @ResponseBody List<Manager> getManagers(){
         List<Manager> managers=managerRepository.findAll();
         return managers;
     }
-    @GetMapping("/findManager/{managerId}")
-    public @ResponseBody List<Manager> findManagerById(@PathVariable Long managerId){
+
+    @GetMapping(params = "id")
+    public @ResponseBody Optional<Manager> findManagerById(@RequestParam(name = "id") Long id){
+        Optional<Manager> manager= managerRepository.findById(id);
+        System.out.println(manager);
+        return manager;
+    }
+    @GetMapping(params = "managerId")
+    public @ResponseBody List<Manager> findManagerByManagerId(@RequestParam(name = "managerId") Long managerId){
         List<Manager> manager= managerRepository.findByManagerId(managerId);
         System.out.println(manager);
         return manager;
     }
-    @PostMapping("/saveManager")
+    @PostMapping
     public Manager saveManager(@RequestBody Manager manager){
         List<Manager> manager1=managerRepository.findByManagerId(manager.getManagerId());
         if(manager1.isEmpty()){
@@ -53,7 +60,7 @@ public class ManagerController {
     @GetMapping("/showAllProjectsManagedBy/{managerId}")
     public Flux<ProjectRequest> getmanager(@PathVariable Long managerId){
         return webClient.get()
-                .uri("http://localhost:8080/api/v1/projects/getProjectsByManagerId/" + managerId)
+                .uri(baseUrl1+"/v1/projects/getProjectsByManagerId/" + managerId)
                 .retrieve().bodyToFlux(ProjectRequest.class);
     }
 }
