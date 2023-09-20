@@ -10,4 +10,6 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("select p from Project p")
     List<Project> getAllProjectsUsingJPAQL();
+
+    List<Project> findByManagerId(Long id);
 }

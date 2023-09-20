@@ -54,13 +54,6 @@ public class ProjectController {
     @GetMapping("/showProjects")
     public List<Project> listall(){return projectRepository.findAll();}
 
-    @GetMapping("/showEmployees")
-    public @ResponseBody
-    List<Employee>
-    getEmployees() {
-        List<Employee> employees = employeeRepository.findAll();
-        return employees;
-    }
 
     /*@PostMapping("/create")
     public ResponseEntity<String> create(@RequestBody Project project){
@@ -79,53 +72,8 @@ public class ProjectController {
         }
 
     }*/
-    @PostMapping("/saveEmployee")
-    public ResponseEntity<String>saveEmployeeWithProject(@RequestBody Employee employee){
-        Long empId=employee.getId();
-        int trueCount=0;
-        if (!employee.getProjects().isEmpty()){
-            int projectCount = employee.getProjects().size();
-            System.out.println("Number of projects: " + projectCount);
-            for(int i=0;i<projectCount;i++){
-                Project firstProject = employee.getProjects().get(i);
-                Long mid=firstProject.getManagerId();
-                Optional<Employee> manager = employeeRepository.findById(mid);
-                if (manager.isPresent()|| mid.equals(empId)) {
-                    trueCount++;
-                }
-                else {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Manager with ID " + mid + " does not exist.");
-                }
-            }
-            List<String> projectResponses = new ArrayList<>();
-            if (trueCount==projectCount){
-                employeeRepository.save(employee);
-            }
-        }
-        else {
-            employeeRepository.save(employee);
-        }
-        return ResponseEntity.ok("Employee added successfully    successfully");
-        //return ResponseEntity.ok("Projects created with title: " + employee.getProjects());
-    }
 
-    @PutMapping("/updateEmployee/{id}")
-    public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Employee updateEmployee){
-        Optional<Employee> employeePresent= employeeRepository.findById(id);
 
-        if(employeePresent.isPresent()){
-            Employee employee=employeePresent.get();
-            employee.setFirstName(updateEmployee.getFirstName());
-            employee.setLastName(updateEmployee.getLastName());
-            employee.setEmail(updateEmployee.getEmail());
-            employee.setProjects(updateEmployee.getProjects());
-            employeeRepository.saveAndFlush(employee);
-            return ResponseEntity.ok("Employee with id "+id+" updated successfully");
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Employee with ID " + id + " does not exist.");
-        }
-    }
 
     @PutMapping("/updateProject/{id}")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Project updateProject){
@@ -143,38 +91,31 @@ public class ProjectController {
         }
     }
 
-    @DeleteMapping("/deleteEmployee/{id}")
-    public void delete(@PathVariable Long id){
-        employeeRepository.deleteById(id);
 
-    }git 
 
-    @GetMapping("/getAllEmployeesUsingJPAQL")
-    public List<Employee> getAllEmployeesUsingJPAQL(){
-        return employeeService.getAllEmployeesUsingJPAQL();
+    @DeleteMapping("/deleteProject/{id}")
+    public String deleteProject(@PathVariable Long id){
+        Optional<Project> projects=projectRepository.findById(id);
+        if(projects.isPresent()){
+            projectRepository.deleteById(id);
+            return "Project with Id "+id+" deleted";
+        }
+        else {
+            return "Project with Id "+id+" doesn't exist";
+        }
     }
+
+    @GetMapping("/getProjectsByManagerId/{id}")
+    public @ResponseBody List<Project> findManagerById(@PathVariable Long id){
+        List<Project> manager= projectRepository.findByManagerId(id);
+        return manager;
+    }
+
+
     @GetMapping("/getAllProjectsUsingJPAQL")
     public List<Project> getAllProjectsUsingJPAQL(){
         return projectService.getAllProjectsUsingJPAQL();
     }
 
-    @GetMapping("/getAllEmployeesNameTitleUsingJPAQL")
-    public List<EmployeeProjectReport> getAllEmployeesNameTitleUsingJPAQL(){
-        return employeeService.getAllEmployeesNameTitleUsingJPAQL();
-    }
 
-    @GetMapping("/employeeNameStartWith")
-    @ResponseBody public List<Employee> getAllNameStartWith(){
-        List<Employee> employees=employeeService.getAllEmployees();
-        return employees.stream().filter(emp->emp.getFirstName().toLowerCase().startsWith("b")).collect(Collectors.toList());
-    }
-
-    @GetMapping("/employeeFirstNameLastName")
-    @ResponseBody
-    public List<String> getAllTitle()
-    {
-        List<Employee> employees = employeeService.getAllEmployees();
-        List<String> firstNameLastName = employees.stream().filter(emp->emp.getFirstName().toLowerCase().startsWith("b")).map(employee -> employee.getFirstName()+" "+employee.getLastName()).collect(Collectors.toList());
-        return firstNameLastName;
-    }
 }
