@@ -5,6 +5,7 @@ import com.restTemplate.managerControl.managerControl.models.ProjectRequest;
 import com.restTemplate.managerControl.managerControl.repository.ManagerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -58,9 +59,10 @@ public class ManagerController {
 
 
     @GetMapping("/showAllProjectsManagedBy/{managerId}")
-    public Flux<ProjectRequest> getmanager(@PathVariable Long managerId){
+    public Flux<ProjectRequest> getmanager(@PathVariable Long managerId,@RequestHeader("Authorization") String authToken){
         return webClient.get()
-                .uri(baseUrl1+"/v1/projects/getProjectsByManagerId/" + managerId)
+                .uri(baseUrl1+"/v1/projects?managerId" + managerId)
+                .header(HttpHeaders.AUTHORIZATION, authToken)
                 .retrieve().bodyToFlux(ProjectRequest.class);
     }
 }

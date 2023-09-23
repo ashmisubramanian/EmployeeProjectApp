@@ -1,5 +1,8 @@
 package com.pluralsight.springbootcrudwebapp.models;
 
+import lombok.Builder;
+
+@Builder
 public class Login {
     private String userName;
     private String password;

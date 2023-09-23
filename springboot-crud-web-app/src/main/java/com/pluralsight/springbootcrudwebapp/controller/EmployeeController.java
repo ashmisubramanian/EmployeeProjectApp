@@ -91,6 +91,12 @@ public class EmployeeController {
             List<String> projectResponses = new ArrayList<>();
             if (trueCount==projectCount){
                 employeeRepository.save(employee);
+                /*for (Project project: employee.getProjects()){
+                    Long managerId=project.getManagerId();
+                    String title=project.getTitle();
+                    Employee emp=employeeRepository.getReferenceById(managerId);
+                    ResponseEntity<ManagerRequest> managerResponse = managerService.createManager(managerId,emp.getFirstName(),emp.getLastName());
+                }*/
                 for (Project project: employee.getProjects()){
                     Long managerId=project.getManagerId();
                     Employee emp=employeeRepository.getReferenceById(managerId);

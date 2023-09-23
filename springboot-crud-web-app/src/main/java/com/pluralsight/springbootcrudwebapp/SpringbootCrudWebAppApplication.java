@@ -1,8 +1,10 @@
 package com.pluralsight.springbootcrudwebapp;
 
+import com.pluralsight.springbootcrudwebapp.security.JwtIssuer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestTemplate;
@@ -29,5 +31,7 @@ public class SpringbootCrudWebAppApplication {
 	public WebClient webClient(){
 		return WebClient.builder().build();
 	}
+
+
 
 }
