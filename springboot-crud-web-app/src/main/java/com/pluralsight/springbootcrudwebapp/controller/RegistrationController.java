@@ -66,29 +66,6 @@ public class RegistrationController {
         registrationRepository.save(registration);
         return  ResponseEntity.ok("Successfully saved");
     }
-
-    /*@PostMapping("/login")
-    public LoginResponse loginValidation(@RequestBody @Validated Login login){
-        Registration user=registrationRepository.findByUserName(login.getUserName());
-        System.out.println(login.getUserName());
-        System.out.println("registration role"+user.getRoles());
-        System.out.println("registration authority"+user.getAuthorities());
-        List<String> roles = user.getRoles().stream()
-                //.map(role -> role.getName().replace("ROLE_", ""))
-                .map(Role::getName)
-                .collect(Collectors.toList());
-
-        if(user!=null&&passwordEncoder.matches(login.getPassword(),user.getPassword())){
-            var token=jwtIssuer.issue(user.getId(), login.getUserName(), passwordEncoder.encode(login.getPassword()),roles);
-            //userDetailsService.loadUserByUsername(user.getUserName());
-            return LoginResponse.builder()
-                    .accessToken(token)
-                    .build();
-        }
-        else{
-            return (LoginResponse) ResponseEntity.status(HttpStatus.BAD_REQUEST);
-        }
-    }*/
     @PostMapping("/login")
     public LoginResponse loginValidation(@RequestBody @Validated Login login){
         var authentication=authenticationManager.authenticate(
