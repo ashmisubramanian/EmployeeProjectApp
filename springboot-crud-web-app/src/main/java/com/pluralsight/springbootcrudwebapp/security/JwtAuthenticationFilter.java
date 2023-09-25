@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -18,14 +20,18 @@ import java.util.Optional;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtDecoder jwtDecoder;
     private final JwtToPrincipalConverter jwtToPrincipalConverter;
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        logger.info("debugging");
         extractTokenFromRequest(request)
                 .map(jwtDecoder::decode)
                         .map(jwtToPrincipalConverter::convert)
                                 .map(UserPrincipalAuthenticationToken::new)
                                         .ifPresent(authentication-> SecurityContextHolder.getContext().setAuthentication(authentication));
         filterChain.doFilter(request,response);
+        logger.info("debugging end");
     }
 
     private Optional<String> extractTokenFromRequest(HttpServletRequest request){

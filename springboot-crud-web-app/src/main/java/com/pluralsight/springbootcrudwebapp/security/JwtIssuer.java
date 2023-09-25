@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 public class JwtIssuer {
     private final JwtProperties jwtProperties;
     public String issue(Long userId, String userName, String password , List<String> roles){
-
         System.out.println("Role Names: " + roles);
         return JWT.create()
                 .withSubject(String.valueOf(userId))
@@ -26,6 +25,7 @@ public class JwtIssuer {
                 .withClaim("u",userName)
                 .withClaim("p",password)
                 .withClaim("r",roles)
+                //.withArrayClaim("r", roles.toArray(new String[0]))
                 .sign(Algorithm.HMAC256(jwtProperties.getSecretKey()));
 
     }

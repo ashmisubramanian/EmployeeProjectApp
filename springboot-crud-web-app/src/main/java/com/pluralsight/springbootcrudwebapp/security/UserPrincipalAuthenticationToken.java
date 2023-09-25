@@ -10,6 +10,7 @@ public class UserPrincipalAuthenticationToken extends AbstractAuthenticationToke
 
     public UserPrincipalAuthenticationToken(UserPrincipal userPrincipal) {
         super(userPrincipal.getAuthorities());
+        System.out.println("user auth"+userPrincipal.getAuthorities());
         this.userPrincipal=userPrincipal;
         setAuthenticated(true);
     }
@@ -21,6 +22,6 @@ public class UserPrincipalAuthenticationToken extends AbstractAuthenticationToke
 
     @Override
     public UserPrincipal getPrincipal() {
-        return null;
+        return userPrincipal;
     }
 }

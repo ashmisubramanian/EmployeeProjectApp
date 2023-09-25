@@ -5,13 +5,18 @@ import com.pluralsight.springbootcrudwebapp.models.LoginResponse;
 import com.pluralsight.springbootcrudwebapp.models.Registration;
 import com.pluralsight.springbootcrudwebapp.repositories.RegistrationRepository;
 import com.pluralsight.springbootcrudwebapp.security.JwtIssuer;
+import com.pluralsight.springbootcrudwebapp.security.Role;
+import com.pluralsight.springbootcrudwebapp.security.UserPrincipal;
 import com.pluralsight.springbootcrudwebapp.services.RegistrationService;
-import com.pluralsight.springbootcrudwebapp.services.UserDetailsService;
+import com.pluralsight.springbootcrudwebapp.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -38,8 +43,8 @@ public class RegistrationController {
     private JwtIssuer jwtIssuer;
 
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
+    private final AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
     private ResponseEntity<String> registerForNew(@RequestBody Registration registration){
@@ -62,17 +67,20 @@ public class RegistrationController {
         return  ResponseEntity.ok("Successfully saved");
     }
 
-    @PostMapping("/login")
+    /*@PostMapping("/login")
     public LoginResponse loginValidation(@RequestBody @Validated Login login){
         Registration user=registrationRepository.findByUserName(login.getUserName());
         System.out.println(login.getUserName());
+        System.out.println("registration role"+user.getRoles());
+        System.out.println("registration authority"+user.getAuthorities());
         List<String> roles = user.getRoles().stream()
-                .map(role -> role.getName().replace("ROLE_", ""))
+                //.map(role -> role.getName().replace("ROLE_", ""))
+                .map(Role::getName)
                 .collect(Collectors.toList());
 
         if(user!=null&&passwordEncoder.matches(login.getPassword(),user.getPassword())){
-            var token=jwtIssuer.issue(user.getId(), login.getUserName(), login.getPassword(),roles);
-            userDetailsService.loadUserByUsername(user.getUserName());
+            var token=jwtIssuer.issue(user.getId(), login.getUserName(), passwordEncoder.encode(login.getPassword()),roles);
+            //userDetailsService.loadUserByUsername(user.getUserName());
             return LoginResponse.builder()
                     .accessToken(token)
                     .build();
@@ -80,5 +88,22 @@ public class RegistrationController {
         else{
             return (LoginResponse) ResponseEntity.status(HttpStatus.BAD_REQUEST);
         }
+    }*/
+    @PostMapping("/login")
+    public LoginResponse loginValidation(@RequestBody @Validated Login login){
+        var authentication=authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(login.getUserName(),login.getPassword())
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        var principal=(UserPrincipal)authentication.getPrincipal();
+        System.out.println("in reg before role:"+principal.getAuthorities());
+        var roles=principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+        System.out.println("In reg role:"+roles);
+        var token=jwtIssuer.issue(principal.getUserId(), principal.getUsername(), principal.getPassword(),roles);
+        return LoginResponse.builder()
+                .accessToken(token)
+                .build();
     }
 }

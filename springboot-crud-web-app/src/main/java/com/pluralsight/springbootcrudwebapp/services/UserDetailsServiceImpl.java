@@ -3,20 +3,23 @@ package com.pluralsight.springbootcrudwebapp.services;
 import com.pluralsight.springbootcrudwebapp.models.Registration;
 import com.pluralsight.springbootcrudwebapp.repositories.RegistrationRepository;
 import com.pluralsight.springbootcrudwebapp.security.Role;
+import com.pluralsight.springbootcrudwebapp.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
 @Service
-public class UserDetailsServiceImpl implements UserDetailsService{
+public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private RegistrationRepository registrationRepository;
 
@@ -38,19 +41,30 @@ public class UserDetailsServiceImpl implements UserDetailsService{
                     return new SimpleGrantedAuthority(roleName);
                 })
                 .collect(Collectors.toList());*/
-        List<GrantedAuthority> authorities = user.getRoles().stream()
+        /*List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> {
                     String roleName = role.getName();
 
                     // Remove the "ROLE_" prefix
-                    if (roleName.startsWith("ROLE_")) {
+                    /*if (roleName.startsWith("ROLE_")) {
                         roleName = roleName.substring("ROLE_".length());
-                    }
-                    System.out.println("Role Name impl: " + roleName);
+                    }*/
+                    /*System.out.println("Role Name impl: " + roleName);
                     return new SimpleGrantedAuthority(roleName);
                 })
                 .collect(Collectors.toList());
-        return new User(user.getUserName(), user.getPassword(), authorities);
+        return new User(user.getUserName(), user.getPassword(), authorities);*/
+        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.toString()))
+                .collect(Collectors.toList());
+        System.out.println("In IMPL fter each convertion:"+authorities);
+        return UserPrincipal.builder()
+                .userId(user.getId())
+                .userName(user.getUserName())
+                //.authorities(Collections.singleton((new SimpleGrantedAuthority(user.getRoles().toString()))))
+                .authorities(authorities)
+                .password(user.getPassword())
+                .build();
     }
 
 }
